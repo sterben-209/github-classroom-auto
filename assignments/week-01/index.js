@@ -26,8 +26,14 @@
  *     Hàm handler này không thể dùng làm constructor với `new` (nếu dùng `new` sẽ ném TypeError).
  */
 function createExecutionContext(ownerName) {
-  // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createExecutionContext");
+  return {
+    ownerName,
+    createHandler: function(actionName) {
+      return () => {
+        return `[${actionName}] performed by ${this.ownerName}`;
+      };
+    }
+  }
 }
 
 /**
@@ -42,8 +48,12 @@ function createExecutionContext(ownerName) {
  *   mỗi hàm ghi nhớ đúng giá trị `i` của vòng lặp tương ứng, không bị bẫy ghi đè biến.
  */
 function createBatchHandlers(count, prefix) {
-  // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createBatchHandlers");
+  const handlers = [];
+  for(let i = 0; i < count; i++) {
+    handlers.push(() => `${prefix}-${i}`);
+  }
+  
+  return handlers;
 }
 
 // ==============================================================================
@@ -61,8 +71,25 @@ function createBatchHandlers(count, prefix) {
  *   - Ghép xen kẽ strings[i] với value[i] theo đúng cơ chế của Tagged Template.
  */
 function highlight(strings, ...values) {
-  // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm highlight");
+  let result = "";
+  for(let i = 0; i < strings.length; i++) {
+    result += strings[i];
+    if(i < values.length) {
+      const value = values[i];
+      if(value === undefined || value === null) {
+        result += ""
+      } else if(typeof value === "string" ||
+                typeof value === "boolean" ||
+                typeof value === "number"
+      ) {
+        result += `<mark>${value}</mark>`
+      } else {
+        result += String(value);
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -78,8 +105,27 @@ function highlight(strings, ...values) {
  *   5. Nối các dòng lại với nhau bằng một ký tự `\n`.
  */
 function multilineFormat(strings, ...values) {
-  // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm multilineFormat");
+  let result = "";
+  for (let i = 0; i < strings.length; i++) {
+    result += strings[i];
+    if (i < values.length) {
+      result += String(values[i] ?? "");
+    }
+  }
+
+  const lines = result.split("\n");
+  while (lines.length > 0 && lines[0].trim() === "") {
+    lines.shift();
+  }
+
+  while (
+    lines.length > 0 &&
+    lines[lines.length - 1].trim() === ""
+  ) {
+    lines.pop();
+  }
+
+  return lines.map(line => line.trim()).join("\n");
 }
 
 // ==============================================================================
@@ -120,9 +166,112 @@ function multilineFormat(strings, ...values) {
  *   - createChildScope(): Tạo một scope con mới có parentScope chính là scope hiện tại,
  *       cho phép Variable Shadowing (khai báo biến trùng tên mà không đụng chạm đến scope cha).
  */
+const UNINITIALIZED = Symbol("UNINITIALIZED");
 function createScopeRegistry(parentScope = null) {
-  // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createScopeRegistry");
+  const variables = new Map();
+  function findBinding(name) {
+    if (variables.has(name)) {
+      return variables.get(name);
+    }
+
+    if (parentScope !== null) {
+      return parentScope._findBinding(name);
+    }
+
+    return null;
+  }
+
+  function declare(name, kind) {
+    if (!["var", "let", "const"].includes(kind)) {
+      throw new TypeError("Invalid declaration kind");
+    }
+
+    if (variables.has(name)) {
+      const existing = variables.get(name);
+      if (existing.kind !== "var" || kind !== "var") {
+        throw new TypeError(
+          `Identifier '${name}' has already been declared`
+        );
+      }
+
+      return;
+    }
+
+    // Hoisting
+    variables.set(name, {
+      kind,
+      value: kind === "var" ? undefined : UNINITIALIZED,
+      initialized: kind === "var"
+    });
+  }
+
+  function initialize(name, value) {
+    if (!variables.has(name)) {
+      throw new ReferenceError(`'${name}' is not declared`);
+    }
+
+    const binding = variables.get(name);
+    if (binding.initialized) {
+      throw new Error("Variable already initialized");
+    }
+
+    if ( binding.kind === "const" && value !== null && typeof value === "object" ) {
+      value = Object.freeze(value);
+    }
+
+    binding.value = value;
+    binding.initialized = true;
+  }
+
+  function assign(name, value) {
+    const binding = findBinding(name);
+    if (binding === null) {
+      throw new ReferenceError(`'${name}' is not defined`);
+    }
+
+    if (!binding.initialized) {
+      throw new ReferenceError(
+        `Cannot access '${name}' before initialization`
+      );
+    }
+
+    if (binding.kind === "const") {
+      throw new TypeError("Assignment to constant variable");
+    }
+
+    binding.value = value;
+  }
+
+  function get(name) {
+    const binding = findBinding(name);
+    if (binding === null) {
+      throw new ReferenceError(`'${name}' is not defined`);
+    }
+
+    if (!binding.initialized) {
+      throw new ReferenceError(
+        `Cannot access '${name}' before initialization`
+      );
+    }
+
+    return binding.value;
+  }
+
+  function createChildScope() {
+    return createScopeRegistry(api);
+  }
+
+  const api = {
+    declare,
+    initialize,
+    assign,
+    get,
+    createChildScope,
+
+    _findBinding: findBinding
+  };
+
+  return api;
 }
 
 module.exports = {
