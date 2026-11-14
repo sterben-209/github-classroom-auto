@@ -27,8 +27,15 @@
  */
 function createCounter(initialValue = 0, step = 1) {
   // TODO: Cài đặt hàm tại đây
-  throw new Error("Chưa cài đặt hàm createCounter");
-}
+  let count = initialValue; 
+  return{
+    increment: () => (count += step),
+    decrement: () => (count -= step),
+    getValue: () => count,
+    reset: () => (count = initialValue),
+  };
+  // throw new Error("Chưa cài đặt hàm createCounter");
+};
 
 /**
  * Tạo một mảng gồm `count` hàm xử lý, giải quyết bẫy scope vòng lặp.
@@ -42,7 +49,12 @@ function createCounter(initialValue = 0, step = 1) {
  */
 function createBatchHandlers(count, prefix = 'task') {
   // TODO: Cài đặt hàm tại đây
-  throw new Error("Chưa cài đặt hàm createBatchHandlers");
+  let ans = [];
+  if(count <= 0) return ans; 
+  for(let i = 0; i < count; i++){
+    ans.push(()=>`${prefix}-${i}`);
+  }
+  return ans; 
 }
 
 // ==============================================================================
@@ -62,7 +74,8 @@ function createBatchHandlers(count, prefix = 'task') {
  */
 function formatLogMessage(level, message, metadata = {}) {
   // TODO: Cài đặt hàm tại đây
-  throw new Error("Chưa cài đặt hàm formatLogMessage");
+  if(Object.keys(metadata).length === 0) return `[${level.toUpperCase()}] ${message}`
+  else return `[${level.toUpperCase()}] ${message} | metadata: ${JSON.stringify(metadata)}`
 }
 
 /**
@@ -77,7 +90,7 @@ function formatLogMessage(level, message, metadata = {}) {
  */
 function cleanQueryString(sql) {
   // TODO: Cài đặt hàm tại đây
-  throw new Error("Chưa cài đặt hàm cleanQueryString");
+  return sql.split('\n').map(line => line.trim()).filter(Boolean).join(" ");
 }
 
 // ==============================================================================
@@ -96,7 +109,13 @@ function cleanQueryString(sql) {
  */
 function createConfigManager(initialConfig = {}) {
   // TODO: Cài đặt hàm tại đây
-  throw new Error("Chưa cài đặt hàm createConfigManager");
+  let config = {...initialConfig}; 
+  return{
+    get: (key,defaultValue = null) => Object.hasOwn(config,key) && config[key] !== undefined ? config[key] : defaultValue,
+    set: (key, value) => config[key] = value,
+    has: (key) => Object.hasOwn(config,key)? true:false,
+    exportConfig: ()=> Object.freeze({...config}),
+  };
 }
 
 module.exports = {
