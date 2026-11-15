@@ -26,13 +26,11 @@
  *     Hàm handler này không thể dùng làm constructor với `new` (nếu dùng `new` sẽ ném TypeError).
  */
 function createExecutionContext(ownerName) {
-  // TODO: Viết code tại đây
-  return {
+  const context = {
     ownerName,
-    createHandler(actionName) {
-      return () => `[${actionName}] performed by ${this.ownerName}`;
-    }
+    createHandler: (actionName) => () => `[${actionName}] performed by ${context.ownerName}`,
   };
+  return context;
 }
 
 /**
@@ -152,21 +150,12 @@ function multilineFormat(strings, ...values) {
  *   - createChildScope(): Tạo một scope con mới có parentScope chính là scope hiện tại,
  *       cho phép Variable Shadowing (khai báo biến trùng tên mà không đụng chạm đến scope cha).
  */
+const scopeDataMap = new WeakMap();
+
 function createScopeRegistry(parentScope = null) {
-  // TODO: Viết code tại đây
   const records = new Map();
 
   const registry = {
-    parentScope,
-
-    hasRecord(name) {
-      return records.has(name);
-    },
-
-    getRecord(name) {
-      return records.get(name);
-    },
-
     declare(name, kind) {
       if (kind !== "var" && kind !== "let" && kind !== "const") {
         throw new TypeError("Invalid declaration kind");
@@ -177,14 +166,14 @@ function createScopeRegistry(parentScope = null) {
         if (existingKind !== "var" || kind !== "var") {
           throw new TypeError(`Identifier '${name}' has already been declared`);
         }
-        return; // Cho phép nếu cả hai đều là 'var'
+        return;
       }
 
       records.set(name, {
         kind,
         value: undefined,
         initialized: false,
-        tdz: kind !== "var", // Nếu là 'var' thì không có TDZ
+        tdz: kind !== "var",
       });
     },
 
@@ -194,7 +183,7 @@ function createScopeRegistry(parentScope = null) {
       }
 
       const record = records.get(name);
-      if (record.initialized) {
+      if (record.initialized && record.kind !== "var") {
         throw new Error("Variable already initialized");
       }
 
@@ -208,15 +197,16 @@ function createScopeRegistry(parentScope = null) {
     },
 
     assign(name, value) {
-      let scope = registry;
+      let current = registry;
       let record = null;
 
-      while (scope) {
-        if (scope.hasRecord(name)) {
-          record = scope.getRecord(name);
+      while (current) {
+        const data = scopeDataMap.get(current);
+        if (data && data.records.has(name)) {
+          record = data.records.get(name);
           break;
         }
-        scope = scope.parentScope;
+        current = data ? data.parentScope : null;
       }
 
       if (!record) {
@@ -230,18 +220,20 @@ function createScopeRegistry(parentScope = null) {
       }
 
       record.value = value;
+      record.initialized = true;
     },
 
     get(name) {
-      let scope = registry;
+      let current = registry;
       let record = null;
 
-      while (scope) {
-        if (scope.hasRecord(name)) {
-          record = scope.getRecord(name);
+      while (current) {
+        const data = scopeDataMap.get(current);
+        if (data && data.records.has(name)) {
+          record = data.records.get(name);
           break;
         }
-        scope = scope.parentScope;
+        current = data ? data.parentScope : null;
       }
 
       if (!record) {
@@ -256,9 +248,10 @@ function createScopeRegistry(parentScope = null) {
 
     createChildScope() {
       return createScopeRegistry(registry);
-    }
+    },
   };
 
+  scopeDataMap.set(registry, { records, parentScope });
   return registry;
 }
 
