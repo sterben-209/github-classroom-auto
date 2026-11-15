@@ -17,12 +17,17 @@ jobs:
     name: Chấm điểm bài làm
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout mã nguồn bài làm
+      - name: Checkout repository gốc (main)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: main
           fetch-depth: 0
-          allow-unsafe-pr-checkout: true
+
+      - name: Lấy bài làm của học viên từ Pull Request
+        if: github.event.pull_request != null
+        run: |
+          git fetch origin refs/pull/${{ github.event.pull_request.number }}/head
+          git checkout FETCH_HEAD -- assignments/
 
       # -----------------------------------------------------------
       # BƯỚC 1: Cài đặt Node.js
