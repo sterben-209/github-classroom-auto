@@ -45,24 +45,31 @@ Vào thư mục của tuần cần làm (ví dụ: `assignments/week-01`):
 ### Bước 3: Chạy thử bài test trên máy
 Gõ lệnh tắt để kiểm tra bài làm trước khi nộp:
 ```bash
-# Test riêng tuần 1:
+# Luyện tập làm quen cú pháp (nếu muốn làm quen trước):
+npm run ex2
+
+# Test bài kiểm tra riêng tuần 1:
 npm run w1
 
-# Test riêng tuần 2:
+# Test bài kiểm tra riêng tuần 2:
 npm run w2
 
 # Test toàn bộ các tuần:
 npm test
 ```
 
-### Bước 4: Nộp bài bằng Pull Request (PR)
-1. Commit và push code lên GitHub của bạn:
-   ```bash
-   git add .
-   git commit -m "Nộp bài Tuần 01"
-   git push origin main
-   ```
-2. Vào GitHub repo của bạn, bấm **Contribute > Open pull request** > Bấm **Create pull request**.
+### Bước 4: Nộp bài tự động (Chỉ 1 lệnh duy nhất)
+Sau khi làm bài xong, bạn chỉ cần gõ **đúng 1 lệnh duy nhất** để nộp:
+```bash
+npm run submit
+# Hoặc: node scripts/submit.js
+```
+
+🤖 **Script sẽ tự động thực hiện từ A - Z**:
+1. Tự động chạy test thực hành tại máy và cảnh báo nếu còn bài bị fail.
+2. Kiểm tra xem bạn đã điền đủ câu trắc nghiệm `quiz.json` chưa.
+3. Tự động `git add`, `git commit` và `git push` lên GitHub.
+4. Cung cấp đường link trực tiếp để xem điểm số trên Google Sheet!
 
 ### 🎉 Kết quả:
 - Bot GitHub Actions sẽ tự động chấm cả **Lý thuyết** lẫn **Thực hành**.

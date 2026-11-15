@@ -1,2 +1,6 @@
 grading_summary.md
 .hidden_tests/
+.github/keys/
+__pycache__/
+*.pyc
+
