@@ -45,10 +45,13 @@ Vào thư mục của tuần cần làm (ví dụ: `assignments/week-01`):
 ### Bước 3: Chạy thử bài test trên máy
 Gõ lệnh tắt để kiểm tra bài làm trước khi nộp:
 ```bash
-# Test riêng tuần 1:
+# Luyện tập làm quen cú pháp (nếu muốn làm quen trước):
+npm run ex2
+
+# Test bài kiểm tra riêng tuần 1:
 npm run w1
 
-# Test riêng tuần 2:
+# Test bài kiểm tra riêng tuần 2:
 npm run w2
 
 # Test toàn bộ các tuần:

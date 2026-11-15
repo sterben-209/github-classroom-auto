@@ -6,6 +6,7 @@
     "test": "node --test",
     "w1": "node --test assignments/week-01",
     "w2": "node --test assignments/week-02",
+    "ex2": "node --test exercises/week-02",
     "submit": "node scripts/submit.js"
   },
   "keywords": [],

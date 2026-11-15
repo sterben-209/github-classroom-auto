@@ -184,7 +184,12 @@ async function main() {
   log(`🤖 Bot GitHub Actions đang tự động chấm bài và cập nhật Google Sheet.`);
   log(`📊 Bạn có thể xem kết quả sau ~30 giây tại:`);
   log(`   ${colors.bold}https://docs.google.com/spreadsheets/d/1-oSqRicyEM3NKcq5mvrwalWFJukSv_F0BxTx5wBqG5c${colors.reset}`);
-  if (repoUrl && currentBranch !== 'main') {
+  if (repoUrl && !repoUrl.includes('sterben-209/github-classroom-auto')) {
+    log(`\n📌 ${colors.yellow}LƯU Ý QUAN TRỌNG (Dành cho lần nộp đầu tiên):${colors.reset}`);
+    log(`   Nếu bạn chưa mở Pull Request về repo chính, hãy bấm vào link sau để mở (chỉ cần mở 1 lần duy nhất):`);
+    log(`   👉 ${colors.bold}${repoUrl}/pull/new/${currentBranch}${colors.reset}`);
+    log(`   (Các lần nộp sau đó, điểm sẽ tự động cập nhật mà không cần mở lại PR)`);
+  } else if (repoUrl && currentBranch !== 'main') {
     log(`\n🔗 Link xem hoặc mở Pull Request:`);
     log(`   ${colors.bold}${repoUrl}/pull/new/${currentBranch}${colors.reset}`);
   }
