@@ -27,7 +27,12 @@
  */
 function createExecutionContext(ownerName) {
   // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createExecutionContext");
+  return {
+    ownerName,
+    createHandler(actionName) {
+      return () => `[${actionName}] performed by ${this.ownerName}`;
+    }
+  };
 }
 
 /**
@@ -43,7 +48,11 @@ function createExecutionContext(ownerName) {
  */
 function createBatchHandlers(count, prefix) {
   // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createBatchHandlers");
+  const handlers = [];
+  for (let i = 0; i < count; i++) {
+    handlers.push(() => `${prefix}-${i}`);
+  }
+  return handlers;
 }
 
 // ==============================================================================
@@ -62,7 +71,20 @@ function createBatchHandlers(count, prefix) {
  */
 function highlight(strings, ...values) {
   // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm highlight");
+  return strings.reduce((result, str, i) => {
+    let val = values[i];
+    
+    if (i < values.length) {
+      if (val === null || val === undefined) {
+        val = "";
+      } else if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+        val = `<mark>${val}</mark>`;
+      }
+      return result + str + val;
+    }
+    
+    return result + str;
+  }, "");
 }
 
 /**
@@ -79,7 +101,17 @@ function highlight(strings, ...values) {
  */
 function multilineFormat(strings, ...values) {
   // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm multilineFormat");
+  const fullString = strings.reduce((result, str, i) => {
+    return result + str + (i < values.length ? values[i] : "");
+  }, "");
+  const lines = fullString.split("\n").map(line => line.trim());
+  while (lines.length > 0 && lines[0] === "") {
+    lines.shift();
+  }
+  while (lines.length > 0 && lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+  return lines.join("\n");
 }
 
 // ==============================================================================
@@ -122,7 +154,112 @@ function multilineFormat(strings, ...values) {
  */
 function createScopeRegistry(parentScope = null) {
   // TODO: Viết code tại đây
-  throw new Error("Chưa cài đặt hàm createScopeRegistry");
+  const records = new Map();
+
+  const registry = {
+    parentScope,
+
+    hasRecord(name) {
+      return records.has(name);
+    },
+
+    getRecord(name) {
+      return records.get(name);
+    },
+
+    declare(name, kind) {
+      if (kind !== "var" && kind !== "let" && kind !== "const") {
+        throw new TypeError("Invalid declaration kind");
+      }
+
+      if (records.has(name)) {
+        const existingKind = records.get(name).kind;
+        if (existingKind !== "var" || kind !== "var") {
+          throw new TypeError(`Identifier '${name}' has already been declared`);
+        }
+        return; // Cho phép nếu cả hai đều là 'var'
+      }
+
+      records.set(name, {
+        kind,
+        value: undefined,
+        initialized: false,
+        tdz: kind !== "var", // Nếu là 'var' thì không có TDZ
+      });
+    },
+
+    initialize(name, value) {
+      if (!records.has(name)) {
+        throw new ReferenceError(`'${name}' is not declared`);
+      }
+
+      const record = records.get(name);
+      if (record.initialized) {
+        throw new Error("Variable already initialized");
+      }
+
+      if (record.kind === "const" && value !== null && typeof value === "object") {
+        Object.freeze(value);
+      }
+
+      record.value = value;
+      record.initialized = true;
+      record.tdz = false;
+    },
+
+    assign(name, value) {
+      let scope = registry;
+      let record = null;
+
+      while (scope) {
+        if (scope.hasRecord(name)) {
+          record = scope.getRecord(name);
+          break;
+        }
+        scope = scope.parentScope;
+      }
+
+      if (!record) {
+        throw new ReferenceError(`'${name}' is not defined`);
+      }
+      if (record.tdz) {
+        throw new ReferenceError(`Cannot access '${name}' before initialization`);
+      }
+      if (record.kind === "const") {
+        throw new TypeError("Assignment to constant variable");
+      }
+
+      record.value = value;
+    },
+
+    get(name) {
+      let scope = registry;
+      let record = null;
+
+      while (scope) {
+        if (scope.hasRecord(name)) {
+          record = scope.getRecord(name);
+          break;
+        }
+        scope = scope.parentScope;
+      }
+
+      if (!record) {
+        throw new ReferenceError(`'${name}' is not defined`);
+      }
+      if (record.tdz) {
+        throw new ReferenceError(`Cannot access '${name}' before initialization`);
+      }
+
+      return record.value;
+    },
+
+    createChildScope() {
+      return createScopeRegistry(registry);
+    }
+  };
+
+  return registry;
 }
 
 module.exports = {
