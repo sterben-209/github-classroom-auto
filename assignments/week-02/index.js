@@ -1,13 +1,13 @@
 /**
  * ==============================================================================
  * BÀI KIỂM TRA THỰC HÀNH TUẦN 02: DESTRUCTURING, REST/SPREAD, OPTIONAL CHAINING & NULLISH COALESCING
- * Chủ đề: Destructuring, Rest & Spread Operator, Optional Chaining (?.), Nullish Coalescing (??)
+ * Chủ đề: Destructuring, Rest & Spread Operator, Optional Chaining, Nullish Coalescing
  * ==============================================================================
  * 
  * HƯỚNG DẪN:
- * 1. Đọc kỹ yêu cầu đề bài trong assignments/week-02/README.md.
+ * 1. Đọc kỹ yêu cầu đề bài, Input, Output và Ví dụ trong assignments/week-02/README.md.
  * 2. Cài đặt các hàm bên dưới theo đúng đặc tả kỹ thuật.
- * 3. Chạy lệnh: `node --test assignments/week-02/sample.test.js` để kiểm tra.
+ * 3. Chạy lệnh: `npm run w2` (hoặc `node --test assignments/week-02`) để kiểm tra.
  */
 
 // ==============================================================================
@@ -17,12 +17,12 @@
 /**
  * Chuẩn hóa payload người dùng gửi lên API, loại bỏ trường nhạy cảm, gom extraInfo.
  * 
- * @param {object} payload - Dữ liệu client gửi lên
+ * @param {any} payload - Dữ liệu client gửi lên
  * @returns {object|null} Đối tượng đã chuẩn hóa hoặc null nếu payload không hợp lệ:
- *   - username: chuỗi đã trim; nếu không có hoặc rỗng thì mặc định 'anonymous'
- *   - email: chuỗi chữ thường đã trim; nếu không có thì mặc định ''
- *   - role: giữ nguyên; nếu nullish thì mặc định 'member'
- *   - extraInfo: gom toàn bộ thuộc tính còn lại sau khi bỏ password, salt, secretToken, isAdmin
+ *   - username (string): chuỗi đã trim; nếu không có hoặc rỗng thì mặc định 'anonymous'
+ *   - email (string): chuỗi chữ thường đã trim; nếu không có hoặc không phải chuỗi thì mặc định ''
+ *   - role (string): giữ nguyên; nếu nullish thì mặc định 'member'
+ *   - extraInfo (object): gom toàn bộ thuộc tính còn lại sau khi bỏ password, salt, secretToken, isAdmin
  *   LƯU Ý: Không được làm đột biến (mutate) payload ban đầu!
  */
 function sanitizeUserPayload(payload) {
@@ -54,7 +54,7 @@ function formatCoordinates(point) {
  * @param {Array<string|number>} pathArray - Mảng các khóa/chỉ số truy cập
  * @param {any} [defaultValue=null] - Giá trị fallback khi gặp nullish hoặc không tìm thấy
  * @returns {any} Giá trị cấu hình tìm được hoặc defaultValue:
- *   - Nếu giá trị tại đích là 0, false, '' hoặc NaN thì vẫn phải trả về nguyên vẹn (dùng ??).
+ *   - Nếu giá trị tại đích là 0, false, '' hoặc NaN thì vẫn phải trả về nguyên vẹn mà không thay thế bằng defaultValue.
  */
 function getNestedConfig(config, pathArray, defaultValue = null) {
   // TODO: Học viên cài đặt hàm tại đây
@@ -66,7 +66,7 @@ function getNestedConfig(config, pathArray, defaultValue = null) {
  * 
  * @param {any} serviceResponse - Phản hồi từ dịch vụ bên ngoài
  * @returns {object} Đối tượng an toàn chứa các thuộc tính:
- *   - statusCode: số mã trạng thái (mặc định 500)
+ *   - statusCode: số mã trạng thái HTTP (mặc định 500)
  *   - isSuccess: boolean (mặc định false)
  *   - serviceName: tên dịch vụ (mặc định 'unknown-service')
  *   - items: mảng dữ liệu (mặc định [])
@@ -85,12 +85,12 @@ function extractServiceInfo(serviceResponse) {
 /**
  * Hợp nhất cấu hình mặc định và cấu hình tùy chỉnh, hỗ trợ merge 1 tầng nested object.
  * 
- * @param {object} [defaultOptions={}] - Cấu hình mặc định
- * @param {object} [customOptions={}] - Cấu hình tùy chỉnh của người dùng
+ * @param {object|null|undefined} defaultOptions - Cấu hình mặc định ban đầu
+ * @param {object|null|undefined} customOptions - Cấu hình tùy chỉnh của người dùng
  * @returns {object} Cấu hình mới sau khi hợp nhất.
- *   - Bảo đảm tính bất biến: không làm thay đổi defaultOptions và customOptions gốc.
+ *   LƯU Ý: Không được làm thay đổi thuộc tính của 2 đối tượng gốc defaultOptions và customOptions.
  */
-function mergeServerOptions(defaultOptions = {}, customOptions = {}) {
+function mergeServerOptions(defaultOptions, customOptions) {
   // TODO: Học viên cài đặt hàm tại đây
   throw new Error("Chưa cài đặt hàm mergeServerOptions");
 }
@@ -98,7 +98,7 @@ function mergeServerOptions(defaultOptions = {}, customOptions = {}) {
 /**
  * Khởi tạo bộ quản lý sự kiện (Event Dispatcher) gọn nhẹ hỗ trợ Rest & Spread.
  * 
- * @returns {object} Đối tượng quản lý sự kiện:
+ * @returns {object} Đối tượng quản lý sự kiện cung cấp 3 phương thức:
  *   - on(eventName, handler): Đăng ký hàm xử lý. Trả về chính đối tượng dispatcher (chaining).
  *   - emit(eventName, ...args): Kích hoạt sự kiện và truyền nguyên vẹn đối số. Trả về số handler đã chạy.
  *   - getRegisteredEvents(): Trả về mảng danh sách tên sự kiện có handler.
