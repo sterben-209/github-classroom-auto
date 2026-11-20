@@ -7,7 +7,9 @@
     "w1": "node --test assignments/week-01",
     "w2": "node --test assignments/week-02",
     "ex2": "node --test exercises/week-02",
-    "submit": "node scripts/submit.js"
+    "submit": "node scripts/submit.js",
+    "submit:w1": "node scripts/submit.js week-01",
+    "submit:w2": "node scripts/submit.js week-02"
   },
   "keywords": [],
   "author": "",

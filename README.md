@@ -6,21 +6,27 @@ Chào mừng các bạn đến với kho lưu trữ bài tập thực hành theo
 
 ## 📂 Cấu trúc thư mục bài tập (Tinh gọn & Dễ dùng)
 
-Mỗi tuần chỉ là **1 thư mục duy nhất**, bên trong chứa đầy đủ đề bài và code làm bài:
+Mỗi tuần được tổ chức rõ ràng gồm 2 phần: **Bài tập tự luyện** (làm quen) và **Bài kiểm tra chính thức** (chấm điểm):
 
 ```text
-assignments/
+exercises/                 # 🏋️ Thư mục BÀI TẬP TỰ LUYỆN (Không chấm điểm - làm quen cú pháp)
+└── week-02/
+    ├── README.md          # 📖 Đề bài & đặc tả chi tiết (Mục tiêu, Input, Logic, Output, Ví dụ)
+    ├── index.js           # 💻 File viết code tự luyện
+    └── sample.test.js     # 🧪 File test chạy thử trên máy (npm run ex2)
+
+assignments/               # 🎯 Thư mục BÀI KIỂM TRA CHÍNH THỨC (Chấm điểm tự động lên Google Sheet)
 ├── week-01/
-│   ├── README.md         # 📖 Đề bài (chứa cả Lý thuyết + Hướng dẫn thực hành)
-│   ├── quiz.json         # ✍️ File điền đáp án trắc nghiệm lý thuyết (A, B, C, D)
-│   ├── index.js          # 💻 File viết code thực hành
-│   └── index.test.js     # 🧪 File test chấm điểm
+│   ├── README.md          # 📖 Đề bài (Lý thuyết trắc nghiệm + Thực hành)
+│   ├── quiz.json          # ✍️ File điền đáp án trắc nghiệm lý thuyết (A, B, C, D)
+│   ├── index.js           # 💻 File viết code bài làm
+│   └── sample.test.js     # 🧪 File test mẫu chạy thử trên máy (npm run w1)
 │
 ├── week-02/
 │   ├── README.md
 │   ├── quiz.json
 │   ├── index.js
-│   └── index.test.js
+│   └── sample.test.js
 │
 └── ... (các tuần tiếp theo)
 ```
@@ -37,32 +43,42 @@ assignments/
    cd github-classroom-auto
    ```
 
-### Bước 2: Làm bài tập
-Vào thư mục của tuần cần làm (ví dụ: `assignments/week-01`):
-1. **Lý thuyết**: Đọc đề trong `README.md`, mở file **`quiz.json`** và điền đáp án `"A"`, `"B"`, `"C"` hoặc `"D"`.
-2. **Thực hành**: Mở file **`index.js`** và hoàn thành các hàm theo yêu cầu.
+### Bước 2: Quy trình làm bài khuyến nghị
+
+Để đạt kết quả tốt nhất và nắm vững kiến thức mà không bị áp lực, bạn nên đi theo quy trình 2 bước:
+
+1. **Giai đoạn 1 - Luyện tập làm quen (`exercises/`):**
+   - Vào thư mục `exercises/week-XX/`, đọc đề trong `README.md` và viết code vào `index.js`.
+   - Chạy test kiểm tra: `npm run ex2` (cho tuần 2). Thư mục này không tính điểm, giúp bạn làm quen cú pháp và tư duy trước khi vào bài thật.
+
+2. **Giai đoạn 2 - Làm bài kiểm tra chính thức (`assignments/`):**
+   - Vào thư mục `assignments/week-XX/`.
+   - **Lý thuyết**: Đọc các câu hỏi trắc nghiệm trong `README.md`, mở file **`quiz.json`** và điền đáp án `"A"`, `"B"`, `"C"` hoặc `"D"`.
+   - **Thực hành**: Mở file **`index.js`** và hoàn thành các hàm theo yêu cầu.
 
 ### Bước 3: Chạy thử bài test trên máy
 Gõ lệnh tắt để kiểm tra bài làm trước khi nộp:
 ```bash
-# Luyện tập làm quen cú pháp (nếu muốn làm quen trước):
+# 1. Chạy test bài tự luyện:
 npm run ex2
 
-# Test bài kiểm tra riêng tuần 1:
-npm run w1
+# 2. Chạy test bài kiểm tra tuần:
+npm run w1        # Kiểm tra tuần 1
+npm run w2        # Kiểm tra tuần 2
 
-# Test bài kiểm tra riêng tuần 2:
-npm run w2
-
-# Test toàn bộ các tuần:
+# 3. Chạy toàn bộ test dự án:
 npm test
 ```
 
 ### Bước 4: Nộp bài tự động (Chỉ 1 lệnh duy nhất)
-Sau khi làm bài xong, bạn chỉ cần gõ **đúng 1 lệnh duy nhất** để nộp:
+Sau khi làm bài xong, bạn chỉ cần gõ lệnh nộp bài:
 ```bash
+# Nộp tự động (hệ thống tự nhận diện tuần theo branch hoặc file bạn đang sửa):
 npm run submit
-# Hoặc: node scripts/submit.js
+
+# Hoặc chỉ định rõ tuần muốn nộp:
+npm run submit:w1   # Nộp tuần 1
+npm run submit:w2   # Nộp tuần 2
 ```
 
 🤖 **Script sẽ tự động thực hiện từ A - Z**:

@@ -46,32 +46,57 @@ function ask(question) {
 function detectWeek() {
   const arg = process.argv[2];
   if (arg) {
-    if (arg.startsWith('week-')) return arg;
-    if (arg.startsWith('w')) return `week-${arg.replace('w', '').padStart(2, '0')}`;
+    if (arg.startsWith('week-')) return { week: arg, source: 'tham số dòng lệnh' };
+    if (arg.startsWith('w')) return { week: `week-${arg.replace('w', '').padStart(2, '0')}`, source: 'tham số dòng lệnh' };
     const num = parseInt(arg, 10);
-    if (!isNaN(num)) return `week-${String(num).padStart(2, '0')}`;
+    if (!isNaN(num)) return { week: `week-${String(num).padStart(2, '0')}`, source: 'tham số dòng lệnh' };
   }
 
-  // 1. Quét git status tìm file đang sửa đổi
+  // 1. Quét tên branch git hiện tại (ví dụ: week-02, bai-tap-tuan-2, tuan-02, w2)
+  try {
+    const branch = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+    const branchMatch = branch.match(/(?:week|tuan|w)[-_]?(\d+)/i);
+    if (branchMatch) {
+      const num = parseInt(branchMatch[1], 10);
+      return { week: `week-${String(num).padStart(2, '0')}`, source: `nhánh git '${branch}'` };
+    }
+  } catch (e) {}
+
+  // 2. Quét git status tìm file đang sửa đổi (assignments hoặc exercises)
   try {
     const status = execSync('git status --porcelain', { encoding: 'utf8' });
-    const matches = status.match(/assignments\/(week-\d+)/g);
+    const matches = status.match(/(?:assignments|exercises)\/(week-\d+)/g);
     if (matches && matches.length > 0) {
-      return matches[matches.length - 1].split('/')[1];
+      const weekFolder = matches[matches.length - 1].split('/')[1];
+      return { week: weekFolder, source: 'file đang chỉnh sửa' };
     }
   } catch (e) {}
 
-  // 2. Quét commit gần nhất
+  // 3. Quét commit gần nhất
   try {
     const diff = execSync('git diff --name-only HEAD~1 HEAD 2>/dev/null', { encoding: 'utf8' });
-    const matches = diff.match(/assignments\/(week-\d+)/g);
+    const matches = diff.match(/(?:assignments|exercises)\/(week-\d+)/g);
     if (matches && matches.length > 0) {
-      return matches[matches.length - 1].split('/')[1];
+      const weekFolder = matches[matches.length - 1].split('/')[1];
+      return { week: weekFolder, source: 'commit gần nhất' };
     }
   } catch (e) {}
 
-  // 3. Mặc định tuần 1
-  return 'week-01';
+  // 4. Lấy tuần mới nhất có trong thư mục assignments/
+  try {
+    const assignmentsDir = path.join(process.cwd(), 'assignments');
+    if (fs.existsSync(assignmentsDir)) {
+      const weeks = fs.readdirSync(assignmentsDir)
+        .filter(d => /^week-\d+$/.test(d))
+        .sort();
+      if (weeks.length > 0) {
+        return { week: weeks[weeks.length - 1], source: 'tuần mới nhất trong assignments/' };
+      }
+    }
+  } catch (e) {}
+
+  // 5. Mặc định tuần 1
+  return { week: 'week-01', source: 'mặc định' };
 }
 
 async function main() {
@@ -79,14 +104,15 @@ async function main() {
   log(`${colors.cyan}${colors.bold}  🚀 HỆ THỐNG NỘP BÀI TỰ ĐỘNG (1-COMMAND SUBMIT)   ${colors.reset}`);
   log(`${colors.cyan}${colors.bold}====================================================${colors.reset}\n`);
 
-  const week = detectWeek();
+  const { week, source } = detectWeek();
   const weekPath = path.join('assignments', week);
   if (!fs.existsSync(weekPath)) {
     log(`${colors.red}❌ Lỗi: Không tìm thấy thư mục bài tập '${weekPath}'!${colors.reset}`);
     process.exit(1);
   }
 
-  log(`📌 Đang chuẩn bị nộp bài cho: ${colors.bold}${colors.green}${week.toUpperCase()}${colors.reset}\n`);
+  log(`📌 Đang chuẩn bị nộp bài cho: ${colors.bold}${colors.green}${week.toUpperCase()}${colors.reset} ${colors.gray}(nhận diện từ: ${source})${colors.reset}`);
+  log(`   ${colors.gray}💡 Mẹo: Có thể chỉ định tuần cụ thể bằng 'npm run submit:w1' hoặc 'node scripts/submit.js week-02'${colors.reset}\n`);
 
   // -------------------------------------------------------------
   // BƯỚC 1: KIỂM TRA THỰC HÀNH TẠI MÁY
@@ -121,12 +147,26 @@ async function main() {
       const quizContent = fs.readFileSync(quizPath, 'utf8');
       const quizData = JSON.parse(quizContent);
       const totalQuestions = Object.keys(quizData).length;
-      const answeredQuestions = Object.values(quizData).filter(v => typeof v === 'string' && v.trim() !== '').length;
+      const validOptions = ['A', 'B', 'C', 'D'];
+      const answeredEntries = Object.entries(quizData).filter(([k, v]) => typeof v === 'string' && v.trim() !== '');
+      const validAnswers = answeredEntries.filter(([k, v]) => validOptions.includes(v.trim().toUpperCase()));
+      const invalidAnswers = answeredEntries.filter(([k, v]) => !validOptions.includes(v.trim().toUpperCase()));
 
-      if (answeredQuestions === totalQuestions && totalQuestions > 0) {
-        log(`  ${colors.green}✔ Đã hoàn thành đầy đủ ${answeredQuestions}/${totalQuestions} câu trắc nghiệm!${colors.reset}`);
+      if (answeredEntries.length === totalQuestions && totalQuestions > 0 && invalidAnswers.length === 0) {
+        log(`  ${colors.green}✔ Đã hoàn thành đầy đủ ${answeredEntries.length}/${totalQuestions} câu trắc nghiệm hợp lệ!${colors.reset}`);
       } else {
-        log(`  ${colors.yellow}⚠️ Bạn mới điền ${answeredQuestions}/${totalQuestions} câu trắc nghiệm.${colors.reset}`);
+        if (invalidAnswers.length > 0) {
+          log(`  ${colors.red}⚠️ Có ${invalidAnswers.length} câu chứa đáp án không hợp lệ (chỉ được điền "A", "B", "C" hoặc "D"):${colors.reset}`);
+          invalidAnswers.forEach(([k, v]) => log(`     - ${k}: "${v}"`));
+        }
+        if (answeredEntries.length < totalQuestions) {
+          log(`  ${colors.yellow}⚠️ Bạn mới điền ${answeredEntries.length}/${totalQuestions} câu trắc nghiệm (còn thiếu ${totalQuestions - answeredEntries.length} câu).${colors.reset}`);
+        }
+        const proceed = await ask(`\n  👉 Tiếp tục nộp lý thuyết với tình trạng hiện tại? (y/N): `);
+        if (proceed.toLowerCase() !== 'y') {
+          log(`\n${colors.gray}Đã hủy nộp bài. Hãy bổ sung đáp án vào file ${quizPath} nhé!${colors.reset}\n`);
+          process.exit(0);
+        }
       }
     } catch (e) {
       log(`  ${colors.red}❌ Lỗi cú pháp JSON trong file ${quizPath}: ${e.message}${colors.reset}`);
